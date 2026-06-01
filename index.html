@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>血統を紡ぐ・犬育成シミュレーター</title>
+    <style>
+        :root {
+            --g: 0;
+            --s: calc(40px + 35px * var(--g));
+            --c: #fff;
+            --e: #f5f5f5;
+        }
+        body {
+            font-family: sans-serif;
+            background: #edf2f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-size: 12px;
+            color: #2d3748;
+        }
+        .w {
+            background: #fff;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            width: 400px;
+            text-align: center;
+        }
+        .s { display: none; }
+        .s.a { display: block; }
+        .o {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 12px;
+            margin: 8px 0;
+            cursor: pointer;
+        }
+        .o:hover {
+            border-color: #ff9800;
+            background: #fffaf0;
+        }
+        .b {
+            background: #ff9800;
+            color: #fff;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 2px;
+            font-weight: bold;
+        }
+        .b2 { background: #4caf50; }
+        .b3 { background: #2196f3; }
+        .b4 { background: #9c27b0; }
+        .b5 { background: #e91e63; }
+        .b6 { background: #607d8b; }
+        .b7 { background: #e53e3e; }
+        .rm {
+            width: 100%;
+            height: 160px;
+            background: #fcd34d;
+            border-bottom: 25px solid #b45309;
+            position: relative;
+            margin: 15px 0;
+            overflow: hidden;
+            border-radius: 10px;
+        }
+        .dmg {
+            position: absolute;
+            background: #78350f;
+            color: #fca5a5;
+            padding: 2px 6px;
+            font-size: 9px;
+            border-radius: 4px;
+            border: 2px dashed #ef4444;
+            display: none;
+        }
+        .c {
+            width: calc(var(--s) * 2);
+            height: calc(var(--s) * 1.5);
+            position: absolute;
+            bottom: 5px;
+            left: 100px;
+            transition: left 1.5s ease-in-out, transform 0.2s;
+        }
+        .c.wl {
+            animation: run-bounce 0.3s infinite alternate ease-in-out;
+        }
+        @keyframes run-bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-8px); }
+        }
+        .c.hurt {
+            animation: shiver 0.1s infinite alternate;
+            transform: rotate(25deg) translateY(5px) !important;
+        }
+        @keyframes shiver {
+            from { transform: rotate(23deg) translate(1px, 4px); }
+            to { transform: rotate(27deg) translate(-1px, 6px); }
+        }
+        .c.senior.wl {
+            animation: senior-walk 0.6s infinite alternate ease-in-out;
+        }
+        @keyframes senior-walk {
+            from { transform: translateY(0); }
+            to { transform: translateY(-2px); }
+        }
+        .bd {
+            width: calc(var(--s) * 1.2);
+            height: var(--s);
+            background: var(--c);
+            border-radius: calc(var(--s) * 0.5);
+            position: absolute;
+            bottom: calc(var(--s) * 0.15);
+            left: calc(var(--s) * 0.35);
+            z-index: 3;
+        }
+        .h {
+            width: var(--s);
+            height: var(--s);
+            background: var(--c);
+            border-radius: 50%;
+            position: absolute;
+            top: 0;
+            left: calc(var(--s) * 0.2);
+            z-index: 4;
+        }
+        .c.wl .h { animation: head-bob 0.3s infinite alternate ease-in-out; }
+        @keyframes head-bob {
+            from { transform: translateY(0) rotate(0deg); }
+            to { transform: translateY(2px) rotate(4deg); }
+        }
+        .c.hurt .h { transform: rotate(-15deg) translateY(4px); }
+        .ey {
+            width: calc(var(--s) * 0.1);
+            height: calc(var(--s) * 0.1);
+            background: #2d3748;
+            border-radius: 50%;
+            position: absolute;
+            top: calc(var(--s) * 0.4);
+        }
+        .ey.l { left: calc(var(--s) * 0.25); }
+        .ey.r { right: calc(var(--s) * 0.25); }
+        .n {
+            width: calc(var(--s) * 0.15);
+            height: calc(var(--s) * 0.1);
+            background: #1a202c;
+            border-radius: 50%;
+            position: absolute;
+            top: calc(var(--s) * 0.52);
+            left: calc(var(--s) * 0.425);
+            z-index: 5;
+        }
+        .se {
+            display: none;
+            width: 0;
+            height: 0;
+            border-left: calc(var(--s) * 0.13) solid transparent;
+            border-right: calc(var(--s) * 0.13) solid transparent;
+            border-bottom: calc(var(--s) * 0.32) solid var(--e);
+            position: absolute;
+            top: calc(var(--s) * -0.15);
+        }
+        .se.l { left: calc(var(--s) * 0.15); transform: rotate(-15deg); }
+        .se.r { right: calc(var(--s) * 0.15); transform: rotate(15deg); }
+        .ge {
+            display: none;
+            width: calc(var(--s) * 0.25);
+            height: calc(var(--s) * 0.5);
+            background: var(--e);
+            border-radius: 20% 20% 50% 50%;
+            position: absolute;
+            top: calc(var(--s) * 0.2);
+        }
+        .ge.l { left: calc(var(--s) * -0.05); transform: rotate(10deg); }
+        .ge.r { right: calc(var(--s) * -0.05); transform: rotate(-10deg); }
+        .lg {
+            width: calc(var(--s) * 0.18);
+            height: calc(var(--s) * (0.2 + 0.15 * var(--g)));
+            background: var(--c);
+            border-radius: calc(var(--s) * 0.1);
+            position: absolute;
+            bottom: 0;
+            z-index: 2;
+            transform-origin: top center;
+        }
+        .lg.fl { left: calc(var(--s) * 0.45); }
+        .lg.fr { left: calc(var(--s) * 0.65); }
+        .lg.bl { left: calc(var(--s) * 1.05); z-index: 1; }
+        .lg.br { left: calc(var(--s) * 1.22); z-index: 1; }
+        .c.wl:not(.hurt) .lg.fl { animation: leg-f 0.3s infinite alternate ease-in-out; }
+        .c.wl:not(.hurt) .lg.br { animation: leg-f 0.3s infinite alternate ease-in-out; }
+        .c.wl:not(.hurt) .lg.fr { animation: leg-b 0.3s infinite alternate ease-in-out; }
+        .c.wl:not(.hurt) .lg.bl { animation: leg-b 0.3s infinite alternate ease-in-out; }
+        .c.senior.wl:not(.hurt) .lg{ animation-duration: 0.6s; }
+        @keyframes leg-f { from { transform: rotate(-25deg); } to { transform: rotate(25deg); } }
+        @keyframes leg-b { from { transform: rotate(25deg); } to { transform: rotate(-25deg); } }
+        .c.hurt .lg { transform: rotate(30deg); animation: none !important; }
+        .t {
+            width: calc(var(--s) * 0.18);
+            height: calc(var(--s) * 0.5);
+            background: var(--c);
+            position: absolute;
+            left: calc(var(--s) * 1.4); 
+            bottom: calc(var(--s) * 0.5);
+            transform-origin: bottom left;
+            animation: tail-wag 0.4s infinite alternate ease-in-out;
+            z-index: 2;
+        }
+        .c.wl:not(.hurt) .t { animation: tail-run 0.15s infinite alternate ease-in-out; }
+        .c.hurt .t, .c.senior:not(.wl) .t { transform: rotate(-40deg); animation: none !important; }
+        .sa .t {
+            border-radius: 50%; border-top: calc(var(--s) * 0.2) solid var(--c); background: transparent;
+            width: calc(var(--s) * 0.4); height: calc(var(--s) * 0.4);
+            left: calc(var(--s) * 1.25); bottom: calc(var(--s) * 0.7); transform: rotate(45deg); animation: none;
+        }
+        .sa.hurt .t {
+            border: none; background: var(--c); border-radius: calc(var(--s) * 0.1);
+            width: calc(var(--s) * 0.15); height: calc(var(--s) * 0.5); transform: rotate(-30deg);
+        }
+        @keyframes tail-wag { from { transform: rotate(15deg); } to { transform: rotate(45deg); } }
+        @keyframes tail-run { from { transform: rotate(10deg); } to { transform: rotate(60deg); } }
+        .st { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; background: #f8fafc; padding: 10px; border-radius: 12px; margin: 10px 0; text-align: left; }
+        .sb { background: #edf2f7; height: 6px; border-radius: 3px; overflow: hidden; margin-top: 2px; }
+        .sf { height: 100%; background: #4caf50; transition: 0.3s; }
+        .m { background: #edf2f7; padding: 8px; border-radius: 8px; font-size: 11px; text-align: left; height: 55px; overflow-y: auto; margin-top: 8px; line-height: 1.4; }
+    </style>
+</head>
+<body>
+<div class="w">
+    <div id="s1" class="s a">
+        <h2 id="welcome-title">リアル生態ワンちゃん育成</h2>
+        <div id="gene-badge" style="font-weight:bold; color:#3182ce; margin-bottom:10px;">【第1世代】</div>
+      
+        <p style="font-size:11px; color:#718096; margin-top:0;">脈々と受け継がれる血統。新しい命を選んでください。</p>
+        <div class="o" onclick="st('サモエド')"><strong>サモエド</strong> (白もふライフ)</div>
+        <div class="o" onclick="st('ゴールデン')"><strong>ゴールデン</strong> (黄金色ライフ)</div>
+    </div>
+    <div id="s2" class="s">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3 id="tit" style="margin:0"></h3>
+            <span id="ui-gene" style="background:#ebf8ff; color:#2b6cb0; padding:2px 8px; border-radius:10px; font-weight:bold;">第1世代</span>
+        </div>
+        <div id="stt" style="font-weight:bold;color:#718096;margin:3px 0 5px; text-align:left;"></div>
+        <div class="rm" id="room">
+            <div id="d_w" class="dmg" style="top:30px;left:30px;">💥破れた壁紙</div>
+            <div id="d_f" class="dmg" style="bottom:10px;right:20px;">💥かじられた柱</div>
+            <div class="c" id="v">
+                <div class="bd"></div><div class="t"></div>
+                <div class="lg fl"></div><div class="lg fr"></div>
+                <div class="lg bl"></div><div class="lg br"></div>
+                <div class="h">
+                    <div class="se l"></div><div class="se r"></div>
+                    <div class="ge l"></div><div class="ge r"></div>
+                    <div class="ey l"></div><div class="ey r"></div>
+                    <div class="n"></div>
+                </div>
+            </div>
+        </div>
+        <div class="st">
+            <div>🍖 おなか: <span id="v_h">100</span>%<div class="sb"><div id="b_h" class="sf"></div></div></div>
+            <div>💖 なつき: <span id="v_l">20</span>%<div class="sb"><div id="b_l" class="sf"></div></div></div>
+            <div>🔋 体力: <span id="v_e">100</span>%<div class="sb"><div id="b_e" class="sf"></div></div></div>
+            <div>🎓 知能: <span id="v_i">0</span><div class="sb"><div id="b_i" class="sf"></div></div></div>
+            <div>🧼 清潔: <span id="v_c">100</span>%<div class="sb"><div id="b_c" class="sf"></div></div></div>
+            <div>✨ 寿命・年齢: <span id="v_g">0</span>%<div class="sb"><div id="b_g" class="sf"></div></div></div>
+        </div>
+        <div id="ctrl_btns">
+            <button class="b" onclick="fd()">ご飯</button>
+            <button class="b" onclick="sn()">おやつ</button>
+            <button class="b b2" onclick="pl()">玩具</button>
+            <button class="b b2" onclick="wk()">散歩</button>
+            <button class="b b3" onclick="tr()">訓練</button>
+            <button class="b b4" onclick="ba()">風呂</button>
+            <button class="b b6" onclick="sl()">就寝</button>
+            <button class="b b5" id="ht" onclick="cl()" style="display:none">病院に運ぶ🏥</button>
+            <button class="b b7" id="rt" onclick="rp()" style="display:none">修理🛠️</button>
+        </div>
+        <div id="next_gen_zone" style="display:none; margin-top:10px;">
+            <button class="b b3" onclick="nextGeneration()" style="padding:10px 20px; font-size:13px; width:100%;">新世代を迎える🐾 (才能を引き継ぐ)</button>
+        </div>
+        <div class="m" id="log">新しい命が誕生しました。大切に育ててください。</div>
+    </div>
+</div>
+<script>
+let type='',g=0,h=100,l=20,e=100,i=0,c=100,isS=false,isI=false,hasW=false,hasF=false,dead=false;
+let generation = 1;
+let inheritedLoveBonus = 0;
+let inheritedIntellectBonus = 0;
+let loopInterval = null;
+
+function st(t){
+    type=t;document.getElementById('tit').innerText=`${type}の生涯`;
+    document.getElementById('ui-gene').innerText=`第${generation}世代`;
+    g=0; h=100; e=100; c=100;
+    l=Math.min(60, 20 + inheritedLoveBonus);
+    i=inheritedIntellectBonus;
+    dead=false; isS=false; isI=false; hasW=false; hasF=false;
+    document.getElementById('d_w').style.display='none';
+    document.getElementById('d_f').style.display='none';
+    document.getElementById('next_gen_zone').style.display='none';
+    document.getElementById('ctrl_btns').style.display='block';
+    const v=document.getElementById('v'),r=document.documentElement;
+    v.className = 'c';
+    if(type==='サモエド'){
+        v.classList.add('sa');r.style.setProperty('--c','#fff');r.style.setProperty('--e','#f1f5f9');
+        document.querySelectorAll('.se').forEach(e=>e.style.display='block');
+        document.querySelectorAll('.ge').forEach(e=>e.style.display='none');
+    }else{
+        v.classList.add('go');r.style.setProperty('--c','#feebc8');r.style.setProperty('--e','#fbd38d');
+        document.querySelectorAll('.ge').forEach(e=>e.style.display='block');
+        document.querySelectorAll('.se').forEach(e=>e.style.display='none');
+    }
+    document.getElementById('s1').classList.remove('a');document.getElementById('s2').classList.add('a');
+    up();
+    if(loopInterval) clearInterval(loopInterval);
+    loopInterval = setInterval(()=>{
+        if(dead) return;
+        if(!isS && !isI){ mv(); }
+        if(isS){
+            e=Math.min(100,e+15);h=Math.max(0,h-2);
+            if(e===100){isS=false;al('ワンちゃんがすっきりと起きました。💤');}
+        }else{
+            h=Math.max(0,h-4);e=Math.max(0,e-2);c=Math.max(0,c-2);
+            if(h<25)al('お腹が減って寂しそうに鳴いています。');
+            if(c<25)al('体が汚れてしまい痒そうです。');
+            if(h===0||c===0||e<10){if(!isI && Math.random()<0.45){isI=true;al('🚨【異変】元気がなく、ガタガタ震えてうずくまりました。病院へ！');}}
+        }
+        if(h>40 && e>30 && c>40 && g<100 && !isI && !isS){
+            g=Math.min(100,g+1);
+            if(g===30) al('「やんちゃ期」突入！目が離せません。');
+            if(g===70) al('すっかり落ち着いた「成犬期」になりました。');
+            if(g===90) al('のんびり過ごす「シニア期(高齢犬)」になりました。');
+            if(g===100){
+                dead=true;
+                inheritedLoveBonus = Math.floor(l * 0.4);
+                inheritedIntellectBonus = Math.floor(i * 0.5);
+                al(`🌈【大往生】第${generation}世代の${type}は、たくさんの愛に包まれて安らかに旅立ちました。育てた才能は次の世代へ受け継がれます。`);
+                document.getElementById('ctrl_btns').style.display='none';
+                document.getElementById('next_gen_zone').style.display='block';
+            }
+            if(g>=30 && g<70 && !isS && !isI && Math.random()<0.22){ brk(); }
+        }
+        up();
+    },3000);
+}
+function nextGeneration() {
+    generation++;
+    document.getElementById('gene-badge').innerText = `【第${generation}世代】`;
+    document.getElementById('welcome-title').innerText = "血統を繋ぐ・新たな誕生";
+    document.getElementById('s2').classList.remove('a');
+    document.getElementById('s1').classList.add('a');
+    al(`✨血統が紡がれました。前代の絆となつき初期値、知能(初期値+${inheritedIntellectBonus})が引き継がれます。`);
+}
+function mv(){
+    const v=document.getElementById('v');v.classList.add('wl');
+    const r=document.getElementById('room').clientWidth,s=v.clientWidth,maxP=r-s,nP=Math.floor(Math.random()*maxP);
+    if(nP>v.offsetLeft){v.style.transform='scaleX(1)';}else{v.style.transform='scaleX(-1)';}
+    v.style.left=nP+'px';setTimeout(()=>{v.classList.remove('wl');},g>=90?2200:1500);
+}
+function brk(){
+    if(Math.random()<0.5&&!hasW){
+        hasW=true;document.getElementById('d_w').style.display='block';al('⚡【破壊期】やんちゃが抑えきれず壁紙をバリバリした！');
+    }else if(!hasF){
+        hasF=true;document.getElementById('d_f').style.display='block';al('⚡【破壊期】柱をごりごりかじってイタズラした！');
+    }
+}
+function rp(){hasW=false;hasF=false;document.getElementById('d_w').style.display='none';document.getElementById('d_f').style.display='none';al('お部屋をキレイに直しました。');up();}
+function fd(){if(chk())return;if(h>=100){al('お腹いっぱいのようです。');return;}h=Math.min(100,h+30);al('ご飯をおいしそうに平らげました！');up();}
+function sn(){if(chk())return;h=Math.min(100,h+10);l=Math.min(100,l+10);al('おやつを食べてご機嫌に尻尾を振っています！');up();}
+function pl(){if(chk())return;if(e<20){al('眠くておもちゃを追いかける元気がありません。');return;}e=Math.max(0,e-15);l=Math.min(100,l+12);al('おもちゃを元気に追いかけて遊んでいます！');up();}
+function wk(){if(chk())return;if(e<30||h<30){al('歩く元気がなさそうです。');return;}e=Math.max(0,e-25);c=Math.max(0,c-25);l=Math.min(100,l+15);al('一緒にお散歩をして嬉しそうにしています！');up();}
+function tr(){if(chk())return;if(e<25){al('指示を聞く余裕がありません。');return;}e=Math.max(0,e-20);i=Math.min(100,i+15);l=Math.max(0,l-3);al('訓練を頑張りました！かしこさが上がっています。');up();}
+function ba(){if(chk())return;c=100;al('お風呂でしっかり洗って清潔になりました。');up();}
+function sl(){if(isI){al('体を痛めて苦しんでいます！先に治療してあげてください！');return;}isS=!isS;al(isS?'丸くなって眠りにつしました。💤':'声をかけて起こしました。');up();}
+function cl(){if(!isI)return;isI=false;e=Math.min(100,e+30);al('病院で治療してもらい、すっかり元気になりました！');up();}
+function chk(){if(dead)return true;if(isI){al('体が痛くて動けないようです。まずは病院へ！');return true;}if(isS){al('今は眠っています。');return true;}return false;}
+function al(m){const l=document.getElementById('log');l.innerHTML=m+'<br>'+l.innerHTML;}
+function up(){
+    const v=document.getElementById('v');
+    document.documentElement.style.setProperty('--g',Math.min(100,g)/100);
+    document.getElementById('v_h').innerText=h;document.getElementById('b_h').style.width=h+'%';
+    document.getElementById('v_l').innerText=l;document.getElementById('b_l').style.width=l+'%';
+    document.getElementById('v_e').innerText=e;document.getElementById('b_e').style.width=e+'%';
+    document.getElementById('v_i').innerText=i;document.getElementById('b_i').style.width=i+'%';
+    document.getElementById('v_c').innerText=c;document.getElementById('b_c').style.width=c+'%';
+    document.getElementById('v_g').innerText=g;document.getElementById('b_g').style.width=g+'%';
+    document.getElementById('b_h').style.background=h<30?'#f44336':'#4caf50';
+    document.getElementById('b_c').style.background=c<30?'#ff9800':'#4caf50';
+    document.getElementById('b_e').style.background=e<30?'#2196f3':'#4caf50';
+    document.getElementById('ht').style.display=isI?'inline-block':'none';
+    document.getElementById('rt').style.display=(hasW||hasF)?'inline-block':'none';
+    if(isI){ v.classList.add('hurt'); } else { v.classList.remove('hurt'); }
+    if(g>=90){ v.classList.add('senior'); } else { v.classList.remove('senior'); }
+    const s=document.getElementById('stt');
+    let stxt=g<30?'子犬(ちっちゃい)':g<70?'若犬(⚠️やんちゃ破壊期)':g<90?'成犬(落ち着き期)':'老犬・シニア(のんびり期)';
+    if(isI)stxt+=' [❌体調不良・痛がっています]';if(isS)stxt+=' [💤就寝中]';if(dead)stxt='天国でのんびりお休み中🌈';
+    s.innerText=stxt;
+}
+</script>
+</body>
+</html>
